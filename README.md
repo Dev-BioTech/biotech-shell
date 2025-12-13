@@ -1,4 +1,4 @@
-#🏗️BioTech Shell – Host Application
+# 🏗️BioTech Shell – Host Application
 
 Host application of the BioTech livestock ERP that orchestrates all microfrontends.
 
