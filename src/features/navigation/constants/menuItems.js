@@ -1,0 +1,58 @@
+export const menuItems = [
+  {
+    id: 1,
+    label: 'Dashboard',
+    iconName: 'Home',
+    path: '/',
+    badge: null,
+  },
+  {
+    id: 2,
+    label: 'Laboratorio',
+    iconName: 'FlaskConical',
+    path: '/lab',
+    badge: 'Nuevo',
+  },
+  {
+    id: 3,
+    label: 'Análisis',
+    iconName: 'BarChart3',
+    path: '/analytics',
+    badge: null,
+  },
+  {
+    id: 4,
+    label: 'Pacientes',
+    iconName: 'Users',
+    path: '/patients',
+    badge: '3',
+  },
+  {
+    id: 5,
+    label: 'Datos',
+    iconName: 'Database',
+    path: '/data',
+    badge: null,
+  },
+  {
+    id: 6,
+    label: 'Reportes',
+    iconName: 'FileText',
+    path: '/reports',
+    badge: null,
+  },
+  {
+    id: 7,
+    label: 'Seguridad',
+    iconName: 'Shield',
+    path: '/security',
+    badge: null,
+  },
+  {
+    id: 8,
+    label: 'Configuración',
+    iconName: 'Settings',
+    path: '/settings',
+    badge: null,
+  },
+];

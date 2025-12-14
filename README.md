@@ -99,15 +99,28 @@ VITE_ENV=production
 
 ## 🧩 Module Federation Configuration
 
-```javascript
-// vite.config.js
-remotes: { 
-authMF: 'http://localhost:5001/assets/remoteEntry.js', 
-animalsMF: 'http://localhost:5002/assets/remoteEntry.js',
+The shell is configured as a **Host (Container)** application that dynamically loads all microfrontends as remotes.
 
-/ ... other remotes
-}
+### Configuration (vite.config.js)
+```javascript
+federation({
+  name: 'biotech_shell',
+  filename: 'remoteEntry.js',
+  remotes: {
+    authMF: process.env.VITE_AUTH_MF || 'http://localhost:5001/assets/remoteEntry.js',
+    animalsMF: process.env.VITE_ANIMALS_MF || 'http://localhost:5002/assets/remoteEntry.js',
+    feedingMF: process.env.VITE_FEEDING_MF || 'http://localhost:5003/assets/remoteEntry.js',
+    healthMF: process.env.VITE_HEALTH_MF || 'http://localhost:5004/assets/remoteEntry.js',
+    reproductionMF: process.env.VITE_REPRODUCTION_MF || 'http://localhost:5005/assets/remoteEntry.js',
+    inventoryMF: process.env.VITE_INVENTORY_MF || 'http://localhost:5006/assets/remoteEntry.js',
+  },
+  shared: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+})
 ```
+
+### Environment-Aware Remotes
+- **Development**: Uses `localhost` with default ports
+- **Production (Vercel)**: Uses environment variables for deployed MFE URLs
 
 ## 🎨 Layout Customization
 
@@ -140,22 +153,91 @@ module: 'new'
 
 ## 🚀 Deploy on Vercel
 
-```bash
-# Install Vercel CLI
-npm i -g vercel
+### Prerequisites
+- All microfrontends deployed on Vercel (or your hosting platform)
+- Environment variables configured in Vercel project
 
-# Deploy
+### Step 1: Deploy via Vercel CLI
+```bash
+# Install Vercel CLI (if not already installed)
+npm install -g vercel
+
+# Deploy to production
 vercel --prod
 ```
 
-### Vercel Configuration (vercel.json)
+### Step 2: Configure Environment Variables in Vercel
+In your Vercel project dashboard, go to **Settings > Environment Variables** and add:
+
+```
+VITE_AUTH_MF=https://your-auth-mf.vercel.app/assets/remoteEntry.js
+VITE_ANIMALS_MF=https://your-animals-mf.vercel.app/assets/remoteEntry.js
+VITE_FEEDING_MF=https://your-feeding-mf.vercel.app/assets/remoteEntry.js
+VITE_HEALTH_MF=https://your-health-mf.vercel.app/assets/remoteEntry.js
+VITE_REPRODUCTION_MF=https://your-reproduction-mf.vercel.app/assets/remoteEntry.js
+VITE_INVENTORY_MF=https://your-inventory-mf.vercel.app/assets/remoteEntry.js
+```
+
+### Step 3: Vercel Configuration (vercel.json)
+The `vercel.json` file is already configured with:
 ```json
 {
-"buildCommand": "npm run build",
-"outputDirectory": "dist",
-"framework": "vite"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci",
+  "framework": "vite",
+  "env": {
+    "VITE_AUTH_MF": "@auth-mf-url",
+    "VITE_ANIMALS_MF": "@animals-mf-url",
+    "VITE_FEEDING_MF": "@feeding-mf-url",
+    "VITE_HEALTH_MF": "@health-mf-url",
+    "VITE_REPRODUCTION_MF": "@reproduction-mf-url",
+    "VITE_INVENTORY_MF": "@inventory-mf-url"
+  }
 }
 ```
+
+### Step 4: Configure Each Microfrontend for Vercel
+
+Each MFE repository should have a similar structure:
+
+**vercel.json** (for each MFE):
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci",
+  "framework": "vite"
+}
+```
+
+**vite.config.js** (example for authMF):
+```javascript
+import federation from '@originjs/vite-plugin-federation'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    federation({
+      name: 'authMF',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './Login': './src/components/Login',
+        './AuthProvider': './src/context/AuthProvider',
+      },
+      shared: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+    }),
+  ],
+})
+```
+
+### Step 5: Deploy Other Microfrontends
+1. Deploy each MFE separately to Vercel
+2. Copy the deployment URL for each MFE
+3. Update the Shell's environment variables with the new URLs
+4. Redeploy the Shell (Host)
 
 ## 🔐 Authentication
 

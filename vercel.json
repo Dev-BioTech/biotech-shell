@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci",
+  "framework": "vite",
+  "env": {
+    "VITE_AUTH_MF": "@auth-mf-url",
+    "VITE_ANIMALS_MF": "@animals-mf-url",
+    "VITE_FEEDING_MF": "@feeding-mf-url",
+    "VITE_HEALTH_MF": "@health-mf-url",
+    "VITE_REPRODUCTION_MF": "@reproduction-mf-url",
+    "VITE_INVENTORY_MF": "@inventory-mf-url"
+  }
+}
