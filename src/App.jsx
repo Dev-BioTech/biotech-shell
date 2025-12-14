@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { Layout } from "./features/layout/components";
 import Dashboard from "./features/dashboard/components/Dashboard";
 import "./App.css";
@@ -18,32 +19,109 @@ const ResetPassword = lazy(() => import("authMF/ResetPassword"));
 function App() {
   const { isAuthenticated } = useAuthStore();
 
+  React.useEffect(() => {
+    const handleAuthChange = () => {
+      // Force reload to sync state from localStorage
+      window.location.reload();
+    };
+
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
   return (
     <BrowserRouter>
-      <Layout>
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
-            </div>
-          }
-        >
-          <Routes>
-            <Route
-              path="/"
-              element={isAuthenticated ? <Dashboard /> : <Landing />}
-            />
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/register" element={<RegisterForm />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/farm-selector" element={<FarmSelector />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Layout>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+          </div>
+        }
+      >
+        <Routes>
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Landing />
+              )
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              !isAuthenticated ? (
+                <LoginForm />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              !isAuthenticated ? (
+                <RegisterForm />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          <Route
+            path="/farm-selector"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <FarmSelector />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Profile WITHOUT Layout (Sidebar) but with Back Button */}
+          <Route
+            path="/profile"
+            element={
+              isAuthenticated ? (
+                <div className="relative min-h-screen bg-gray-50/30">
+                  <Link
+                    to="/dashboard"
+                    className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white text-green-700 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all font-medium border border-green-100 group"
+                  >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    Volver al Dashboard
+                  </Link>
+                  <UserProfile />
+                </div>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
