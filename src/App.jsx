@@ -1,5 +1,12 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "./features/layout/components";
 import Dashboard from "./features/dashboard/components/Dashboard";
@@ -20,6 +27,49 @@ const ResetPassword = lazy(() => import("authMF/ResetPassword"));
 const AnimalsList = lazy(() => import("animalsMF/AnimalsList"));
 const AnimalDetail = lazy(() => import("animalsMF/AnimalDetail"));
 const AnimalForm = lazy(() => import("animalsMF/AnimalForm"));
+
+// Health MF Imports
+const RemoteHealthDashboard = lazy(() => import("healthMF/HealthDashboard"));
+const RemoteHealthRecords = lazy(() => import("healthMF/HealthRecordsView"));
+const RemoteVaccinationCalendar = lazy(() =>
+  import("healthMF/VaccinationCalendar")
+);
+const RemoteDiagnosticHistory = lazy(() =>
+  import("healthMF/DiagnosticHistory")
+);
+
+// Wrappers para inyectar navegación
+const HealthDashboardWrapper = () => {
+  const navigate = useNavigate();
+  return (
+    <RemoteHealthDashboard
+      onViewRecords={() => navigate("/health/records")}
+      onViewCalendar={() => navigate("/health/vaccination")}
+      onViewDiagnostics={() => navigate("/health/diagnostics")}
+    />
+  );
+};
+
+const HealthRecordsWrapper = () => {
+  return (
+    <RemoteHealthRecords
+      onCreate={() => console.log("Crear registro")}
+      onEdit={(id) => console.log("Editar registro", id)}
+    />
+  );
+};
+
+const VaccinationCalendarWrapper = () => {
+  return (
+    <RemoteVaccinationCalendar
+      onSchedule={() => console.log("Programar vacunación")}
+    />
+  );
+};
+
+const DiagnosticHistoryWrapper = () => {
+  return <RemoteDiagnosticHistory />;
+};
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -146,6 +196,56 @@ function App() {
               isAuthenticated ? (
                 <Layout>
                   <AnimalForm />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Health Microfrontend Routes */}
+          <Route
+            path="/health"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <HealthDashboardWrapper />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/health/records"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <HealthRecordsWrapper />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/health/vaccination"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <VaccinationCalendarWrapper />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/health/diagnostics"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <DiagnosticHistoryWrapper />
                 </Layout>
               ) : (
                 <Navigate to="/login" replace />

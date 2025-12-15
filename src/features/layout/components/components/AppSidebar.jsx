@@ -54,7 +54,7 @@ export function AppSidebar({ ...props }) {
     },
     {
       title: "Vacunación",
-      url: "/vaccination",
+      url: "/health/vaccination",
       icon: Syringe,
     },
     {
