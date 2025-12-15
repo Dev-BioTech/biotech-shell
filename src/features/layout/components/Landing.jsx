@@ -1,145 +1,110 @@
-import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  Activity,
-  Dna,
-  Box,
-  Shield,
-  ChevronRight,
-} from "lucide-react";
+import Navbar from "../../navigation/components/Navbar";
+import Footer from "../../navigation/components/Footer";
+import HeroSection from "../../landing/components/HeroSection";
+import FeaturesSection from "../../landing/components/FeaturesSection";
+import GallerySection from "../../landing/components/GallerySection";
+import TestimonialsSection from "../../landing/components/TestimonialsSection";
+import FAQSection from "../../landing/components/FAQSection";
+import StatsSection from "../../landing/components/StatsSection";
+import CTASection from "../../landing/components/CTASection";
 
 const Landing = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-white dark:bg-biotech-darker font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 dark:from-gray-900 dark:via-emerald-950 dark:to-gray-900 font-sans overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Navigation */}
+      <Navbar />
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-biotech-primary to-emerald-900 text-white pt-20 pb-32">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1574943320219-553eb213da07?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 animate-fade-in-up">
-              Gestión Inteligente para tu{" "}
-              <span className="text-green-300">Granja Agrotech</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-green-50 mb-10 animate-fade-in-up delay-100">
-              Optimiza la producción, maximiza la salud animal y controla cada
-              aspecto de tu negocio con tecnología de punta.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-200">
-              <button
-                onClick={() => navigate("/login")}
-                className="px-8 py-4 bg-white text-emerald-900 rounded-full font-bold text-lg hover:bg-green-50 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
-              >
-                Comenzar Ahora
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button className="px-8 py-4 border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all">
-                Ver Demo
-              </button>
-            </div>
-          </div>
-        </div>
+      <HeroSection />
 
-        {/* Decorative Curve */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-white dark:bg-biotech-darker rounded-t-[50%] transform scale-x-150 translate-y-10"></div>
-      </section>
+      {/* Features Section */}
+      <FeaturesSection />
 
-      {/* Features Grid */}
-      <section className="py-20 bg-white dark:bg-biotech-darker">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Todo lo que necesitas en un solo lugar
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-              Nuestra plataforma integra módulos especializados para cubrir
-              todas las necesidades operativas de tu granja.
-            </p>
-          </div>
+      {/* Gallery/Carousel Section */}
+      <GallerySection />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Activity,
-                title: "Monitoreo en Tiempo Real",
-                desc: "Visualiza el estado de salud y rendimiento de tu ganado al instante con sensores IoT integrados.",
-                color: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
-              },
-              {
-                icon: Dna,
-                title: "Genética Avanzada",
-                desc: "Gestiona linajes, cruces y mejora genética con herramientas de análisis predictivo.",
-                color: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
-              },
-              {
-                icon: Box,
-                title: "Control de Inventario",
-                desc: "Automatiza pedidos y lleva un registro exacto de alimentos, medicinas y suministros.",
-                color: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
-              },
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                className="p-8 rounded-2xl border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-shadow bg-gray-50 dark:bg-biotech-dark group"
-              >
-                <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${feature.color} group-hover:scale-110 transition-transform`}
-                >
-                  <feature.icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {feature.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Testimonials Section */}
+      <TestimonialsSection />
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* Stats Section */}
-      <section className="py-20 bg-gray-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500 rounded-full blur-[128px] opacity-20"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-[128px] opacity-20"></div>
+      <StatsSection />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { value: "+500", label: "Granjas Activas" },
-              { value: "98%", label: "Satisfacción" },
-              { value: "+1M", label: "Animales Gestionados" },
-              { value: "24/7", label: "Soporte Técnico" },
-            ].map((stat, idx) => (
-              <div key={idx}>
-                <div className="text-4xl md:text-5xl font-bold text-emerald-400 mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-400 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* CTA Section */}
+      <CTASection />
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-biotech-dark border-t border-gray-100 dark:border-gray-800 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-biotech-primary to-biotech-secondary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">BT</span>
-            </div>
-            <span className="font-bold text-gray-900 dark:text-white text-lg">
-              Biotech Platform
-            </span>
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            © 2025 Biotech Platform. Todos los derechos reservados.
-          </div>
-        </div>
-      </footer>
+      <Footer />
+
+      {/* Custom Animations */}
+      <style jsx>{`
+        @keyframes blob {
+          0%,
+          100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        .delay-100 {
+          animation-delay: 0.1s;
+        }
+        .delay-200 {
+          animation-delay: 0.2s;
+        }
+        .delay-300 {
+          animation-delay: 0.3s;
+        }
+        @keyframes scroll-carousel {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .animate-scroll-carousel {
+          animation: scroll-carousel 40s linear infinite;
+        }
+        .animate-scroll-carousel:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 };
