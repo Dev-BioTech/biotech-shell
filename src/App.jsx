@@ -16,6 +16,11 @@ const FarmSelector = lazy(() => import("authMF/FarmSelector"));
 const ForgotPassword = lazy(() => import("authMF/ForgotPassword"));
 const ResetPassword = lazy(() => import("authMF/ResetPassword"));
 
+// Animals MF Import
+const AnimalsList = lazy(() => import("animalsMF/AnimalsList"));
+const AnimalDetail = lazy(() => import("animalsMF/AnimalDetail"));
+const AnimalForm = lazy(() => import("animalsMF/AnimalForm"));
+
 function App() {
   const { isAuthenticated } = useAuthStore();
 
@@ -91,6 +96,56 @@ function App() {
               isAuthenticated ? (
                 <Layout>
                   <Dashboard />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Animals Microfrontend Routes */}
+          <Route
+            path="/animals"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <AnimalsList />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/animals/create"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <AnimalForm />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/animals/:id"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <AnimalDetail />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/animals/edit/:id"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <AnimalForm />
                 </Layout>
               ) : (
                 <Navigate to="/login" replace />
