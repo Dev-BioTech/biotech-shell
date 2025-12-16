@@ -38,6 +38,10 @@ const RemoteDiagnosticHistory = lazy(() =>
   import("healthMF/DiagnosticHistory")
 );
 
+// Feeding MF Imports
+const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
+const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
+
 // Wrappers para inyectar navegación
 const HealthDashboardWrapper = () => {
   const navigate = useNavigate();
@@ -246,6 +250,44 @@ function App() {
               isAuthenticated ? (
                 <Layout>
                   <DiagnosticHistoryWrapper />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Feeding Microfrontend Routes */}
+          <Route
+            path="/feeding"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <Suspense
+                    fallback={
+                      <div className="p-4">
+                        Cargando módulo de alimentación...
+                      </div>
+                    }
+                  >
+                    <FeedingPlans />
+                  </Suspense>
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/feeding/schedule"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <Suspense
+                    fallback={<div className="p-4">Cargando horario...</div>}
+                  >
+                    <FeedingSchedule />
+                  </Suspense>
                 </Layout>
               ) : (
                 <Navigate to="/login" replace />

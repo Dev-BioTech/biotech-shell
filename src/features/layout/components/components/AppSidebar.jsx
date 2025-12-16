@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Thermometer,
   Leaf,
+  Utensils,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -61,6 +62,11 @@ export function AppSidebar({ ...props }) {
       title: "Producción Leche",
       url: "/production/milk",
       icon: Milk,
+    },
+    {
+      title: "Alimentación",
+      url: "/feeding",
+      icon: Utensils,
     },
     {
       title: "Producción Huevos",
