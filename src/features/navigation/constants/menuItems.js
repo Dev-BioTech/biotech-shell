@@ -20,13 +20,13 @@ export const menuItems = [
     path: "/health",
     badge: null,
   },
-  {
-    id: 4,
-    label: "Alimentación",
-    iconName: "FlaskConical", // Flask could represent mixing feed?
-    path: "/feeding",
-    badge: null,
-  },
+  // {
+  //   id: 4,
+  //   label: "Alimentación",
+  //   iconName: "FlaskConical", // Flask could represent mixing feed?
+  //   path: "/feeding",
+  //   badge: null,
+  // },
   {
     id: 5,
     label: "Reproducción",
