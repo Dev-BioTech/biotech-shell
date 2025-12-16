@@ -6,14 +6,27 @@ import {
   Navigate,
   Link,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { Layout } from "./features/layout/components";
-import Dashboard from "./features/dashboard/components/Dashboard";
+import { Layout } from "@features/layout/components";
+import Dashboard from "@features/dashboard/components/Dashboard";
 import "./App.css";
 
-import Landing from "./features/layout/components/Landing";
-import { useAuthStore } from "./shared/store/authStore";
+import Landing from "@features/layout/components/Landing";
+import { useAuthStore } from "@shared/store/authStore";
+
+// Component to protect routes
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuthStore();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
 
 // Lazy load remote components
 const UserProfile = lazy(() => import("authMF/UserProfile"));
@@ -42,7 +55,7 @@ const RemoteDiagnosticHistory = lazy(() =>
 const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
 const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
 
-// Wrappers para inyectar navegación
+// Wrappers to inject navigation
 const HealthDashboardWrapper = () => {
   const navigate = useNavigate();
   return (
@@ -77,16 +90,46 @@ const DiagnosticHistoryWrapper = () => {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  const [authChecked, setAuthChecked] = React.useState(false);
+
+// Check authentication when mounting and when path changes
+  React.useEffect(() => {
+    // Check if there is authentication data in localStorage
+    const authData = localStorage.getItem("auth-storage");
+    if (authData) {
+      try {
+        const parsed = JSON.parse(authData);
+        // Zustand state should already be synchronized by the persist middleware
+        setAuthChecked(true);
+      } catch (error) {
+        console.error("Error parsing auth data:", error);
+        localStorage.removeItem("auth-storage");
+        setAuthChecked(true);
+      }
+    } else {
+      setAuthChecked(true);
+    }
+  }, []);
 
   React.useEffect(() => {
     const handleAuthChange = () => {
-      // Force reload to sync state from localStorage
-      window.location.reload();
+      // Synchronize state without reloading the entire page
+      setAuthChecked(false);
+      setTimeout(() => setAuthChecked(true), 100);
     };
 
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
   }, []);
+
+  // Wait for authentication to be verified before rendering
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -134,26 +177,22 @@ function App() {
           <Route
             path="/farm-selector"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <FarmSelector />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/dashboard"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <Dashboard />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 
@@ -161,49 +200,41 @@ function App() {
           <Route
             path="/animals"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <AnimalsList />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/animals/create"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <AnimalForm />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/animals/:id"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <AnimalDetail />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/animals/edit/:id"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <AnimalForm />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 
@@ -211,49 +242,41 @@ function App() {
           <Route
             path="/health"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <HealthDashboardWrapper />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/health/records"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <HealthRecordsWrapper />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/health/vaccination"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <VaccinationCalendarWrapper />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/health/diagnostics"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <DiagnosticHistoryWrapper />
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 
@@ -261,7 +284,7 @@ function App() {
           <Route
             path="/feeding"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <Suspense
                     fallback={
@@ -273,15 +296,13 @@ function App() {
                     <FeedingPlans />
                   </Suspense>
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/feeding/schedule"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <Layout>
                   <Suspense
                     fallback={<div className="p-4">Cargando horario...</div>}
@@ -289,9 +310,7 @@ function App() {
                     <FeedingSchedule />
                   </Suspense>
                 </Layout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 
@@ -299,7 +318,7 @@ function App() {
           <Route
             path="/profile"
             element={
-              isAuthenticated ? (
+              <ProtectedRoute>
                 <div className="relative min-h-screen bg-gray-50/30">
                   <Link
                     to="/dashboard"
@@ -310,9 +329,7 @@ function App() {
                   </Link>
                   <UserProfile />
                 </div>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              </ProtectedRoute>
             }
           />
 

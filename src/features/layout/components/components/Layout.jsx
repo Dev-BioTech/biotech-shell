@@ -2,11 +2,11 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "../../../../components/ui/sidebar";
+} from "@components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Chatbot } from "../../../chatbot/components";
-import { useAuthStore } from "../../../../shared/store/authStore";
-import { Separator } from "../../../../components/ui/separator";
+import { Chatbot } from "@features/chatbot/components";
+import { useAuthStore } from "@shared/store/authStore";
+import { Separator } from "@components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../../components/ui/dropdown-menu";
+} from "@components/ui/dropdown-menu";
 import { Users, LogOut, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +25,9 @@ const Layout = ({ children }) => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = "/login";
+   // Notify authentication change to sync
+    window.dispatchEvent(new Event("auth-change"));
+    window.location.href = "/";
   };
 
   if (!isAuthenticated) {
@@ -36,7 +38,7 @@ const Layout = ({ children }) => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        {/* Header simple integrado con Trigger */}
+        {/*Simple Header integrated with Trigger */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
