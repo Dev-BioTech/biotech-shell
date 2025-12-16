@@ -5,9 +5,8 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Cargar variables de entorno según el modo
-  const env = loadEnv(mode, process.cwd(), '');
-  
+  const env = loadEnv(mode, process.cwd(), "");
+
   return {
     resolve: {
       alias: {
@@ -24,8 +23,7 @@ export default defineConfig(({ mode }) => {
         filename: "remoteEntry.js",
         remotes: {
           authMF:
-            env.VITE_AUTH_MF ||
-            "http://localhost:5001/assets/remoteEntry.js",
+            env.VITE_AUTH_MF || "http://localhost:5001/assets/remoteEntry.js",
           animalsMF:
             env.VITE_ANIMALS_MF ||
             "http://localhost:5002/assets/remoteEntry.js",
@@ -33,8 +31,7 @@ export default defineConfig(({ mode }) => {
             env.VITE_FEEDING_MF ||
             "http://localhost:5003/assets/remoteEntry.js",
           healthMF:
-            env.VITE_HEALTH_MF ||
-            "http://localhost:5004/assets/remoteEntry.js",
+            env.VITE_HEALTH_MF || "http://localhost:5004/assets/remoteEntry.js",
           reproductionMF:
             env.VITE_REPRODUCTION_MF ||
             "http://localhost:5005/assets/remoteEntry.js",
@@ -57,6 +54,7 @@ export default defineConfig(({ mode }) => {
           zustand: { singleton: true },
           "framer-motion": { singleton: true },
           "lucide-react": { singleton: true },
+          axios: { singleton: true },
         },
       }),
     ],
