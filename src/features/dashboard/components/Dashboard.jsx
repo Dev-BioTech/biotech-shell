@@ -9,9 +9,12 @@ import {
   TrendingUp,
   AlertCircle,
   Award,
+  Building2,
 } from "lucide-react";
+import { useAuthStore } from "@shared/store/authStore";
 
 export default function Dashboard() {
+  const { selectedFarm } = useAuthStore();
   const stats = [
     {
       label: "Cultivos Activos",
@@ -119,6 +122,22 @@ export default function Dashboard() {
                 Panel de Control
               </h1>
             </motion.div>
+
+            {/* Farm Name Display */}
+            {selectedFarm && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+                className="flex items-center gap-2 mb-3"
+              >
+                <Building2 className="w-5 h-5 text-green-300" />
+                <span className="text-xl font-semibold text-green-100">
+                  {selectedFarm.name}
+                </span>
+              </motion.div>
+            )}
+
             <motion.p
               className="text-green-100 text-lg"
               initial={{ opacity: 0, x: -20 }}
