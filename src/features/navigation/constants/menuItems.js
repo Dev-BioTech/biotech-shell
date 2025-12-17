@@ -1,44 +1,61 @@
+import {
+  Home,
+  Beef,
+  Activity,
+  Utensils,
+  Heart,
+  DollarSign,
+  Package,
+} from "lucide-react";
+
 export const menuItems = [
   {
     id: 1,
     label: "Dashboard",
-    iconName: "Home",
+    icon: Home,
     path: "/dashboard",
     badge: null,
   },
   {
     id: 2,
     label: "Animales",
-    iconName: "Database", // Assuming Database icon for now, or Users could work
+    icon: Beef,
     path: "/animals",
     badge: null,
   },
-  // {
-  //   id: 3,
-  //   label: "Salud",
-  //   iconName: "Shield", // Shield fits health well enough
-  //   path: "/health",
-  //   badge: null,
-  // },
-  // {
-  //   id: 4,
-  //   label: "Alimentación",
-  //   iconName: "FlaskConical", // Flask could represent mixing feed?
-  //   path: "/feeding",
-  //   badge: null,
-  // },
+  {
+    id: 3,
+    label: "Salud",
+    icon: Activity,
+    path: "/health",
+    badge: null,
+  },
+  {
+    id: 4,
+    label: "Alimentación",
+    icon: Utensils,
+    path: "/feeding",
+    badge: null,
+  },
   {
     id: 5,
     label: "Reproducción",
-    iconName: "Users", // Users representing family/repro
+    icon: Heart,
     path: "/reproduction",
-    badge: "Nuevo",
+    badge: null,
   },
   {
     id: 6,
     label: "Comercial",
-    iconName: "BarChart3", // BarChart for sales/reports
+    icon: DollarSign,
     path: "/commercial",
+    badge: null,
+  },
+  {
+    id: 7,
+    label: "Inventario",
+    icon: Package,
+    path: "/inventory",
     badge: null,
   },
 ];

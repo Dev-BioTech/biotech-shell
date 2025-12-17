@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { aiService } from "../services/aiService";
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,88 +25,34 @@ export function Chatbot() {
     scrollToBottom();
   }, [messages]);
 
-  const getBotResponse = (userMessage) => {
-    const message = userMessage.toLowerCase();
-
-    // Vacunación
-    if (message.includes("vacuna") || message.includes("vacunación")) {
-      return `📋 **Calendario de Vacunación:**\n\n**Esta semana necesitan vacunación:**\n• Corral 3: 15 bovinos - Vacuna antiaftosa (Jueves)\n• Corral 5: 8 bovinos - Refuerzo vitamínico (Viernes)\n• Sector Avícola A: 120 aves - Newcastle (Miércoles)\n\n**Próxima semana:**\n• Corral 1: 12 porcinos - Vacuna contra peste porcina`;
+  const getBotResponse = async (userMessage) => {
+    try {
+      const response = await aiService.sendMessage(userMessage);
+      // Adjust based on actual backend response structure.
+      // Assuming response is { response: "..." } or plain string.
+      return response?.response ||
+        response?.message ||
+        typeof response === "string"
+        ? response
+        : "No pude procesar tu solicitud.";
+    } catch (error) {
+      console.error("AI Error:", error);
+      // Return specific error for debugging
+      const details = error.response?.data
+        ? JSON.stringify(error.response.data)
+        : error.message;
+      return `Error: ${details}. (Status: ${error.response?.status})`;
     }
-
-    // Ganancia de peso
-    if (
-      message.includes("ganancia") ||
-      message.includes("peso") ||
-      message.includes("lote")
-    ) {
-      return `📊 **Análisis de Ganancia de Peso:**\n\n**Mejor rendimiento:**\n🥇 Lote B-12 (Bovinos): +42 kg promedio en 30 días\n🥈 Lote P-8 (Porcinos): +28 kg promedio en 30 días\n🥉 Lote O-5 (Ovinos): +8 kg promedio en 30 días\n\n**Requiere atención:**\n⚠️ Lote B-7: Ganancia inferior al promedio (-15%)`;
-    }
-
-    // Salud de animales
-    if (
-      message.includes("salud") ||
-      message.includes("enfermo") ||
-      message.includes("enfermedad")
-    ) {
-      return `🏥 **Estado de Salud del Ganado:**\n\n**Estado General:** ✅ Bueno\n\n**Casos activos:**\n• 2 bovinos en observación (Corral 4) - Infección respiratoria leve\n• 1 porcino en tratamiento (Corral 2) - Cojera\n\n**Última revisión veterinaria:** Hace 3 días\n**Próxima visita programada:** 5 de diciembre`;
-    }
-
-    // Alimentación
-    if (
-      message.includes("aliment") ||
-      message.includes("comida") ||
-      message.includes("ración")
-    ) {
-      return `🌾 **Programa de Alimentación:**\n\n**Consumo diario:**\n• Bovinos: 1,200 kg de forraje + 450 kg de concentrado\n• Porcinos: 280 kg de alimento balanceado\n• Ovinos: 150 kg de forraje\n\n**Inventario de alimento:**\n✅ Forraje: Suficiente para 15 días\n⚠️ Concentrado bovino: Reabastecer en 5 días\n✅ Alimento porcino: Suficiente para 20 días`;
-    }
-
-    // Producción
-    if (
-      message.includes("producción") ||
-      message.includes("leche") ||
-      message.includes("huevo")
-    ) {
-      return `🥛 **Producción Actual:**\n\n**Leche (Bovinos):**\n• Producción diaria: 850 litros\n• Promedio por vaca: 22 litros/día\n• Incremento vs mes anterior: +8%\n\n**Huevos (Avicultura):**\n• Producción diaria: 2,400 unidades\n• Tasa de postura: 85%\n• Calidad: Categoría A (92%)`;
-    }
-
-    // Total de animales
-    if (
-      message.includes("cuántos") ||
-      message.includes("total") ||
-      message.includes("cantidad")
-    ) {
-      return `🐄 **Inventario de Ganado:**\n\n**Total de animales:** 438\n\n**Distribución:**\n• Bovinos: 156 (8 corrales)\n• Porcinos: 89 (4 corrales)\n• Ovinos: 123 (3 corrales)\n• Aves: 70 (Sector avícola)\n\n**Últimas incorporaciones:**\n• 12 bovinos (hace 5 días)\n• 25 aves (hace 2 semanas)`;
-    }
-
-    // Clima/ambiente
-    if (
-      message.includes("clima") ||
-      message.includes("temperatura") ||
-      message.includes("ambiente")
-    ) {
-      return `🌡️ **Condiciones Ambientales:**\n\n**Ambiente actual:**\n• Temperatura: 22°C (Óptimo)\n• Humedad: 65%\n• Ventilación: Normal\n\n**Instalaciones:**\n✅ Corrales: Temperatura controlada\n✅ Galpones avícolas: 21°C\n⚠️ Sector C: Revisar sistema de ventilación`;
-    }
-
-    // Recomendaciones
-    if (
-      message.includes("recomend") ||
-      message.includes("suger") ||
-      message.includes("consejo")
-    ) {
-      return `💡 **Recomendaciones:**\n\n**Acciones prioritarias:**\n1. Programar vacunación Corral 3 (esta semana)\n2. Revisar alimentación Lote B-7 (bajo rendimiento)\n3. Reabastecer concentrado bovino\n4. Mantenimiento sistema ventilación Sector C\n\n**Oportunidades:**\n• Incrementar producción lechera (+12% potencial)\n• Optimizar conversión alimenticia en porcinos`;
-    }
-
-    // Default response
-    return `Puedo ayudarte con:\n\n🔸 Vacunaciones y calendario sanitario\n🔸 Ganancia de peso por lote\n🔸 Estado de salud del ganado\n🔸 Programas de alimentación\n🔸 Producción (leche, huevos)\n🔸 Inventario de animales\n🔸 Condiciones ambientales\n🔸 Recomendaciones\n\n¿Sobre qué te gustaría saber?`;
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (!inputValue.trim()) return;
 
+    const userMessageText = inputValue;
     const userMessage = {
       id: messages.length + 1,
-      text: inputValue,
+      text: userMessageText,
       sender: "user",
       timestamp: new Date(),
     };
@@ -114,17 +61,28 @@ export function Chatbot() {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate bot typing delay
-    setTimeout(() => {
+    // Call AI Service
+    try {
+      const botResponseText = await getBotResponse(userMessageText);
+
       const botMessage = {
         id: messages.length + 2,
-        text: getBotResponse(inputValue),
+        text: botResponseText,
         sender: "bot",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage = {
+        id: messages.length + 2,
+        text: "Error de comunicación.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
 
   const handleKeyPress = (e) => {

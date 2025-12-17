@@ -1,16 +1,12 @@
 import {
-  Home, // Usar Home en lugar de LayoutDashboard para coincidir con la casita
-  Users,
+  Home,
   Beef,
   Activity,
-  Syringe,
-  Milk,
-  Egg,
-  Scale,
-  ClipboardList,
-  Thermometer,
-  Leaf,
   Utensils,
+  Heart,
+  DollarSign,
+  Package,
+  Leaf,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -31,7 +27,7 @@ export function AppSidebar({ ...props }) {
   const { user } = useAuthStore();
   const location = useLocation();
 
-  // Menu items based on the user's design image
+  // Menu items - Only implemented modules with endpoints
   const items = [
     {
       title: "Dashboard",
@@ -41,12 +37,7 @@ export function AppSidebar({ ...props }) {
     {
       title: "Animales",
       url: "/animals",
-      icon: Beef, // Using Beef (steak icon) or Leaf if preferred. Beef is semantic.
-    },
-    {
-      title: "Usuarios",
-      url: "/users",
-      icon: Users,
+      icon: Beef,
     },
     {
       title: "Salud",
@@ -54,39 +45,24 @@ export function AppSidebar({ ...props }) {
       icon: Activity,
     },
     {
-      title: "Vacunación",
-      url: "/health/vaccination",
-      icon: Syringe,
-    },
-    {
-      title: "Producción Leche",
-      url: "/production/milk",
-      icon: Milk,
-    },
-    {
       title: "Alimentación",
       url: "/feeding",
       icon: Utensils,
     },
     {
-      title: "Producción Huevos",
-      url: "/production/eggs",
-      icon: Egg,
+      title: "Reproducción",
+      url: "/reproduction",
+      icon: Heart,
     },
     {
-      title: "Pesaje",
-      url: "/weight",
-      icon: Scale,
+      title: "Comercial",
+      url: "/commercial",
+      icon: DollarSign,
     },
     {
-      title: "Reportes",
-      url: "/reports",
-      icon: ClipboardList,
-    },
-    {
-      title: "Clima",
-      url: "/climate",
-      icon: Thermometer,
+      title: "Inventario",
+      url: "/inventory",
+      icon: Package,
     },
   ];
 
