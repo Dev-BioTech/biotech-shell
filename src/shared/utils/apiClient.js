@@ -1,10 +1,10 @@
 import axios from "axios";
+import alertService from "./alertService";
 
 // Client API configured for the Gateway
 const apiClient = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_GATEWAY_URL ||
-    "https://api-gateway-bio-tech.up.railway.app/api",
+  // Force correct URL to ensure consistency across all MFs
+  baseURL: "https://api-gateway-bio-tech.up.railway.app/api",
   timeout: 30000, // Increased timeout for AI responses
   headers: {
     "Content-Type": "application/json",
@@ -35,11 +35,17 @@ apiClient.interceptors.request.use(
 // Interceptor for handling authentication errors
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       // Invalid or expired token
       localStorage.removeItem("auth-storage");
       window.dispatchEvent(new Event("auth-change"));
+
+      await alertService.error(
+        "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+        "Sesión Expirada"
+      );
+
       window.location.href = "/login";
     }
     return Promise.reject(error);
