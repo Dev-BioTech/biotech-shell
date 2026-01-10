@@ -64,10 +64,15 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "esnext",
       minify: false,
+      modulePreload: false,
     },
     server: {
-      port: 5173,
-      strictPort: false,
+      port: 5000,
+      strictPort: true,
+      cors: true,
+      fs: {
+        strict: false,
+      },
     },
   };
 });
