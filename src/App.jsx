@@ -44,11 +44,11 @@ const AnimalForm = lazy(() => import("animalsMF/AnimalForm"));
 // Health MF Imports
 const RemoteHealthDashboard = lazy(() => import("healthMF/HealthDashboard"));
 const RemoteHealthRecords = lazy(() => import("healthMF/HealthRecordsView"));
-const RemoteVaccinationCalendar = lazy(() =>
-  import("healthMF/VaccinationCalendar")
+const RemoteVaccinationCalendar = lazy(
+  () => import("healthMF/VaccinationCalendar"),
 );
-const RemoteDiagnosticHistory = lazy(() =>
-  import("healthMF/DiagnosticHistory")
+const RemoteDiagnosticHistory = lazy(
+  () => import("healthMF/DiagnosticHistory"),
 );
 
 // Feeding MF Imports
@@ -56,13 +56,18 @@ const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
 const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
 
 // Reproduction MF Imports
-const RemoteReproductionMonitor = lazy(() =>
-  import("reproductionMF/ReproductionMonitor")
+const RemoteReproductionMonitor = lazy(
+  () => import("reproductionMF/ReproductionMonitor"),
 );
 
 // Commercial/Inventory MF Imports
-const RemoteCommercialDashboard = lazy(() =>
-  import("commercialMF/CommercialDashboard")
+const RemoteCommercialDashboard = lazy(
+  () => import("commercialMF/CommercialDashboard"),
+);
+
+// Inventory MF Import (NEW)
+const RemoteInventoryList = lazy(
+  () => import("inventoryMF/InventoryDashboard"),
 );
 
 // Wrappers to inject navigation
@@ -340,7 +345,23 @@ function App() {
             }
           />
 
-          {/* Commercial / Inventory Routes */}
+          {/* Inventory Route (NEW) */}
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Suspense
+                    fallback={<div className="p-4">Cargando inventario...</div>}
+                  >
+                    <RemoteInventoryList />
+                  </Suspense>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Commercial Route */}
           <Route
             path="/commercial"
             element={
