@@ -61,9 +61,8 @@ const RemoteReproductionMonitor = lazy(() =>
 );
 
 // Commercial/Inventory MF Imports
-// NOTE: Shell config defines remote as "inventoryMF"
 const RemoteCommercialDashboard = lazy(() =>
-  import("inventoryMF/CommercialDashboard")
+  import("commercialMF/CommercialDashboard")
 );
 
 // Wrappers to inject navigation
