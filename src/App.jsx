@@ -16,12 +16,19 @@ import "./App.css";
 import Landing from "@features/layout/components/Landing";
 import { useAuthStore } from "@shared/store/authStore";
 
+import { isTokenExpired } from "@shared/utils/jwt";
+
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, token, logout } = useAuthStore();
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  // Si no está autenticado o el token expiró, redirigir
+  if (!isAuthenticated || !token || isTokenExpired(token)) {
+    if (isAuthenticated) {
+      console.warn("Session expired or token missing, logging out...");
+      logout();
+    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -109,32 +116,58 @@ function App() {
 
   // Check authentication when mounting and when path changes
   React.useEffect(() => {
-    // Check if there is authentication data in localStorage
-    const authData = localStorage.getItem("auth-storage");
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData);
-        // Zustand state should already be synchronized by the persist middleware
-        setAuthChecked(true);
-      } catch (error) {
-        console.error("Error parsing auth data:", error);
-        localStorage.removeItem("auth-storage");
-        setAuthChecked(true);
+    const validateToken = () => {
+      const { token, logout } = useAuthStore.getState();
+
+      if (token && isTokenExpired(token)) {
+        console.warn("Shell: Token expired on mount, logging out...");
+        logout();
       }
-    } else {
       setAuthChecked(true);
-    }
+    };
+
+    validateToken();
+
+    // Verificación periódica cada 5 segundos para una respuesta rápida
+    const interval = setInterval(() => {
+      const { isTokenValid, logout, isAuthenticated } = useAuthStore.getState();
+
+      // Si el store dice que está autenticado pero el token no es válido o no existe
+      if (isAuthenticated && !isTokenValid()) {
+        console.warn("Shell: Session invalid during periodic check");
+        logout();
+        window.dispatchEvent(new Event("auth-change"));
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   React.useEffect(() => {
     const handleAuthChange = () => {
-      // Synchronize state without reloading the entire page
+      console.log("Shell: Auth change detected, re-validating...");
+      // Forzar verificación inmediata
+      const { isTokenValid, logout, isAuthenticated } = useAuthStore.getState();
+      if (isAuthenticated && !isTokenValid()) {
+        logout();
+      }
+
+      // Sincronizar UI
       setAuthChecked(false);
-      setTimeout(() => setAuthChecked(true), 100);
+      setTimeout(() => setAuthChecked(true), 50);
     };
 
     window.addEventListener("auth-change", handleAuthChange);
-    return () => window.removeEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", (e) => {
+      if (e.key === "auth-storage") {
+        handleAuthChange();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("auth-change", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+    };
   }, []);
 
   // Wait for authentication to be verified before rendering
