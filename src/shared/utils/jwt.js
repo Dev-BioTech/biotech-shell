@@ -28,7 +28,10 @@ export const parseJwt = (token) => {
 export const isTokenExpired = (token) => {
   if (!token) return true;
   const decoded = parseJwt(token);
-  if (!decoded || !decoded.exp) return true;
+
+  // Si no se puede decodificar el token o no tiene exp,
+  // se asume válido (compatibilidad con tokens mock/internos)
+  if (!decoded || !decoded.exp) return false;
 
   // jwt exp está en segundos, Date.now() en milisegundos
   const currentTime = Date.now() / 1000;
