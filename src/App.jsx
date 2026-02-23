@@ -16,7 +16,7 @@ import "./App.css";
 import Landing from "@features/layout/components/Landing";
 import { useAuthStore } from "@shared/store/authStore";
 
-import { isTokenExpired } from "@shared/utils/jwt";
+import { isTokenExpired, parseJwt } from "@shared/utils/jwt";
 
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
       console.warn("Session expired or token missing, logging out...");
       logout();
     }
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return children;
@@ -42,6 +42,8 @@ const RegisterForm = lazy(() => import("authMF/Register"));
 const FarmSelector = lazy(() => import("authMF/FarmSelector"));
 const ForgotPassword = lazy(() => import("authMF/ForgotPassword"));
 const ResetPassword = lazy(() => import("authMF/ResetPassword"));
+const SettingsPage = lazy(() => import("authMF/SettingsPage"));
+import ToastContainer from "@shared/components/ui/ToastContainer";
 
 // Animals MF Import
 const AnimalsList = lazy(() => import("animalsMF/AnimalsList"));
@@ -111,10 +113,10 @@ const DiagnosticHistoryWrapper = () => {
 };
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, selectedFarm } = useAuthStore();
   const [authChecked, setAuthChecked] = React.useState(false);
 
-  // Check authentication when mounting and when path changes
+  // Check authentication when mounting
   React.useEffect(() => {
     const validateToken = () => {
       const { token, logout } = useAuthStore.getState();
@@ -128,33 +130,30 @@ function App() {
 
     validateToken();
 
-    // Verificación periódica cada 5 segundos para una respuesta rápida
+    // Verificación periódica cada 10 segundos
     const interval = setInterval(() => {
-      const { isTokenValid, logout, isAuthenticated } = useAuthStore.getState();
+      const { isTokenValid, logout, isAuthenticated, token } =
+        useAuthStore.getState();
 
-      // Si el store dice que está autenticado pero el token no es válido o no existe
-      if (isAuthenticated && !isTokenValid()) {
-        console.warn("Shell: Session invalid during periodic check");
-        logout();
-        window.dispatchEvent(new Event("auth-change"));
+      if (isAuthenticated && token && !isTokenValid()) {
+        const decoded = parseJwt(token);
+        if (decoded && decoded.exp) {
+          console.warn("Shell: Session expired during periodic check");
+          logout();
+          window.dispatchEvent(new Event("auth-change"));
+        }
       }
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
+  // ÚNICO CAMBIO MANTENIDO: Sincronización inteligente sin parpadeo
   React.useEffect(() => {
-    const handleAuthChange = () => {
-      console.log("Shell: Auth change detected, re-validating...");
-      // Forzar verificación inmediata
-      const { isTokenValid, logout, isAuthenticated } = useAuthStore.getState();
-      if (isAuthenticated && !isTokenValid()) {
-        logout();
-      }
-
-      // Sincronizar UI
-      setAuthChecked(false);
-      setTimeout(() => setAuthChecked(true), 50);
+    const handleAuthChange = async () => {
+      console.log("Shell: Auth change detected, syncing...");
+      // Forzamos a Zustand a re-leer el localStorage sin desmontar la App
+      await useAuthStore.persist.rehydrate();
     };
 
     window.addEventListener("auth-change", handleAuthChange);
@@ -174,17 +173,20 @@ function App() {
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
 
   return (
     <BrowserRouter>
+      {/* ToastContainer local — no rompe el layout */}
+      <ToastContainer />
+
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           </div>
         }
       >
@@ -193,7 +195,11 @@ function App() {
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
+                selectedFarm ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/farm-selector" replace />
+                )
               ) : (
                 <Landing />
               )
@@ -204,8 +210,10 @@ function App() {
             element={
               !isAuthenticated ? (
                 <LoginForm />
-              ) : (
+              ) : selectedFarm ? (
                 <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/farm-selector" replace />
               )
             }
           />
@@ -214,8 +222,10 @@ function App() {
             element={
               !isAuthenticated ? (
                 <RegisterForm />
-              ) : (
+              ) : selectedFarm ? (
                 <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/farm-selector" replace />
               )
             }
           />
@@ -412,20 +422,25 @@ function App() {
             }
           />
 
-          {/* Profile WITHOUT Layout (Sidebar) but with Back Button */}
+          {/* Profile WITHOUT Layout (Sidebar) */}
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
                 <div className="relative min-h-screen bg-gray-50/30">
-                  <Link
-                    to="/dashboard"
-                    className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white text-green-700 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all font-medium border border-green-100 group"
-                  >
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    Volver al Dashboard
-                  </Link>
                   <UserProfile />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Settings / Preferencias WITHOUT Layout */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <div className="relative min-h-screen bg-gray-50/30">
+                  <SettingsPage />
                 </div>
               </ProtectedRoute>
             }
