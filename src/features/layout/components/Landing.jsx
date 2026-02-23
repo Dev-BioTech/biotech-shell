@@ -1,12 +1,12 @@
-import Navbar from "../../navigation/components/Navbar";
-import Footer from "../../navigation/components/Footer";
-import HeroSection from "../../landing/components/HeroSection";
-import FeaturesSection from "../../landing/components/FeaturesSection";
-import GallerySection from "../../landing/components/GallerySection";
-import TestimonialsSection from "../../landing/components/TestimonialsSection";
-import FAQSection from "../../landing/components/FAQSection";
-import StatsSection from "../../landing/components/StatsSection";
-import CTASection from "../../landing/components/CTASection";
+import Navbar from "@features/navigation/components/Navbar";
+import Footer from "@features/navigation/components/Footer";
+import HeroSection from "@features/landing/components/HeroSection";
+import FeaturesSection from "@features/landing/components/FeaturesSection";
+import GallerySection from "@features/landing/components/GallerySection";
+import TestimonialsSection from "@features/landing/components/TestimonialsSection";
+import FAQSection from "@features/landing/components/FAQSection";
+import StatsSection from "@features/landing/components/StatsSection";
+import CTASection from "@features/landing/components/CTASection";
 
 const Landing = () => {
   return (

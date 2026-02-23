@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { isTokenExpired } from "../utils/jwt";
+import { isTokenExpired } from "@shared/utils/jwt";
 
 export const useAuthStore = create(
   persist(
