@@ -23,8 +23,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "../../../../components/ui/sidebar";
-import { useAuthStore } from "../../../../shared/store/authStore";
+} from "@components/ui/sidebar";
+import { useAuthStore } from "@shared/store/authStore";
 
 export function AppSidebar({ ...props }) {
   const { user } = useAuthStore();

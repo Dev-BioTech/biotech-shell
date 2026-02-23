@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { aiService } from "../services/aiService";
+import { aiService } from "@features/chatbot/services/aiService";
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
