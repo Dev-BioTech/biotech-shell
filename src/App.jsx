@@ -7,6 +7,7 @@ import {
   Link,
   useNavigate,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "@features/layout/components";
@@ -17,28 +18,23 @@ import Landing from "@features/layout/components/Landing";
 import { useAuthStore } from "@shared/store/authStore";
 import ApiServiceDemo from "@shared/components/ApiServiceDemo";
 
+import { isTokenExpired, parseJwt } from "@shared/utils/jwt";
+
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, token, _hasHydrated } = useAuthStore();
+  const { isAuthenticated, token, logout } = useAuthStore();
   const location = useLocation();
 
-  // Wait for hydration before checking authentication
-  if (!_hasHydrated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
-      </div>
-    );
+  // Si no está autenticado o el token expiró, redirigir
+  if (!isAuthenticated || !token || isTokenExpired(token)) {
+    if (isAuthenticated) {
+      console.warn("Session expired or token missing, logging out...");
+      logout();
+    }
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Double check: verify both isAuthenticated flag and token
-  const hasAuth = isAuthenticated && token;
-
-  if (!hasAuth) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
+  return children || <Outlet />;
 };
 
 // Lazy load remote components
@@ -48,20 +44,23 @@ const RegisterForm = lazy(() => import("authMF/Register"));
 const FarmSelector = lazy(() => import("authMF/FarmSelector"));
 const ForgotPassword = lazy(() => import("authMF/ForgotPassword"));
 const ResetPassword = lazy(() => import("authMF/ResetPassword"));
+const SettingsPage = lazy(() => import("authMF/SettingsPage"));
+import ToastContainer from "@shared/components/ui/ToastContainer";
 
 // Animals MF Import
 const AnimalsList = lazy(() => import("animalsMF/AnimalsList"));
 const AnimalDetail = lazy(() => import("animalsMF/AnimalDetail"));
 const AnimalForm = lazy(() => import("animalsMF/AnimalForm"));
+const CatalogsManager = lazy(() => import("animalsMF/CatalogsManager"));
 
 // Health MF Imports
 const RemoteHealthDashboard = lazy(() => import("healthMF/HealthDashboard"));
 const RemoteHealthRecords = lazy(() => import("healthMF/HealthRecordsView"));
-const RemoteVaccinationCalendar = lazy(() =>
-  import("healthMF/VaccinationCalendar")
+const RemoteVaccinationCalendar = lazy(
+  () => import("healthMF/VaccinationCalendar"),
 );
-const RemoteDiagnosticHistory = lazy(() =>
-  import("healthMF/DiagnosticHistory")
+const RemoteDiagnosticHistory = lazy(
+  () => import("healthMF/DiagnosticHistory"),
 );
 
 // Feeding MF Imports
@@ -69,14 +68,18 @@ const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
 const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
 
 // Reproduction MF Imports
-const RemoteReproductionMonitor = lazy(() =>
-  import("reproductionMF/ReproductionMonitor")
+const RemoteReproductionMonitor = lazy(
+  () => import("reproductionMF/ReproductionMonitor"),
 );
 
 // Commercial/Inventory MF Imports
-// NOTE: Shell config defines remote as "inventoryMF"
-const RemoteCommercialDashboard = lazy(() =>
-  import("inventoryMF/CommercialDashboard")
+const RemoteCommercialDashboard = lazy(
+  () => import("commercialMF/CommercialDashboard"),
+);
+
+// Inventory MF Import (NEW)
+const RemoteInventoryList = lazy(
+  () => import("inventoryMF/InventoryDashboard"),
 );
 
 // Wrappers to inject navigation
@@ -113,23 +116,80 @@ const DiagnosticHistoryWrapper = () => {
 };
 
 function App() {
-  const { isAuthenticated, _hasHydrated } = useAuthStore();
+  const { isAuthenticated, selectedFarm } = useAuthStore();
+  const [authChecked, setAuthChecked] = React.useState(false);
 
-  // Wait for Zustand to hydrate from localStorage before rendering
-  if (!_hasHydrated) {
+  // Check authentication when mounting
+  React.useEffect(() => {
+    const validateToken = () => {
+      const { token, logout } = useAuthStore.getState();
+
+      if (token && isTokenExpired(token)) {
+        console.warn("Shell: Token expired on mount, logging out...");
+        logout();
+      }
+      setAuthChecked(true);
+    };
+
+    validateToken();
+
+    // Verificación periódica cada 10 segundos
+    const interval = setInterval(() => {
+      const { isTokenValid, logout, isAuthenticated, token } =
+        useAuthStore.getState();
+
+      if (isAuthenticated && token && !isTokenValid()) {
+        const decoded = parseJwt(token);
+        if (decoded && decoded.exp) {
+          console.warn("Shell: Session expired during periodic check");
+          logout();
+          window.dispatchEvent(new Event("auth-change"));
+        }
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ÚNICO CAMBIO MANTENIDO: Sincronización inteligente sin parpadeo
+  React.useEffect(() => {
+    const handleAuthChange = async () => {
+      console.log("Shell: Auth change detected, syncing...");
+      // Forzamos a Zustand a re-leer el localStorage sin desmontar la App
+      await useAuthStore.persist.rehydrate();
+    };
+
+    window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", (e) => {
+      if (e.key === "auth-storage") {
+        handleAuthChange();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("auth-change", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+    };
+  }, []);
+
+  // Wait for authentication to be verified before rendering
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
 
   return (
     <BrowserRouter>
+      {/* ToastContainer local — no rompe el layout */}
+      <ToastContainer />
+
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-biotech-primary"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           </div>
         }
       >
@@ -138,7 +198,11 @@ function App() {
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
+                selectedFarm ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/farm-selector" replace />
+                )
               ) : (
                 <Landing />
               )
@@ -149,8 +213,10 @@ function App() {
             element={
               !isAuthenticated ? (
                 <LoginForm />
-              ) : (
+              ) : selectedFarm ? (
                 <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/farm-selector" replace />
               )
             }
           />
@@ -159,209 +225,96 @@ function App() {
             element={
               !isAuthenticated ? (
                 <RegisterForm />
-              ) : (
+              ) : selectedFarm ? (
                 <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/farm-selector" replace />
               )
             }
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* API Service Demo - Testing Route */}
-          <Route path="/api-test" element={<ApiServiceDemo />} />
-
-          <Route
-            path="/farm-selector"
-            element={
-              <ProtectedRoute>
-                <FarmSelector />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Animals Microfrontend Routes */}
-          <Route
-            path="/animals"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalsList />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/create"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalForm />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/:id"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalDetail />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/edit/:id"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalForm />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Health Microfrontend Routes */}
-          <Route
-            path="/health"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HealthDashboardWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/records"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HealthRecordsWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/vaccination"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <VaccinationCalendarWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/diagnostics"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <DiagnosticHistoryWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Feeding Microfrontend Routes */}
-          <Route
-            path="/feeding"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">
-                        Cargando módulo de alimentación...
-                      </div>
-                    }
-                  >
+          {/* Protected Routes with Persistent Layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="animals" element={<AnimalsList />} />
+              <Route path="animals/create" element={<AnimalForm />} />
+              <Route path="animals/:id" element={<AnimalDetail />} />
+              <Route path="animals/edit/:id" element={<AnimalForm />} />
+              <Route path="catalogs" element={<CatalogsManager />} />
+              <Route path="health" element={<HealthDashboardWrapper />} />
+              <Route path="health/records" element={<HealthRecordsWrapper />} />
+              <Route
+                path="health/vaccination"
+                element={<VaccinationCalendarWrapper />}
+              />
+              <Route
+                path="health/diagnostics"
+                element={<DiagnosticHistoryWrapper />}
+              />
+              <Route
+                path="feeding"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <FeedingPlans />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feeding/schedule"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={<div className="p-4">Cargando horario...</div>}
-                  >
+                }
+              />
+              <Route
+                path="feeding/schedule"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <FeedingSchedule />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Reproduction Routes */}
-          <Route
-            path="/reproduction"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">Cargando reproducción...</div>
-                    }
-                  >
+                }
+              />
+              <Route
+                path="reproduction"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <RemoteReproductionMonitor />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Commercial / Inventory Routes */}
-          <Route
-            path="/commercial"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">Cargando dashboard comercial...</div>
-                    }
-                  >
+                }
+              />
+              <Route
+                path="inventory"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
+                    <RemoteInventoryList />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="commercial"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <RemoteCommercialDashboard />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+                }
+              />
+            </Route>
 
-          {/* Profile WITHOUT Layout (Sidebar) but with Back Button */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
+            {/* Other protected routes without sidebars */}
+            <Route path="farm-selector" element={<FarmSelector />} />
+            <Route
+              path="profile"
+              element={
                 <div className="relative min-h-screen bg-gray-50/30">
-                  <Link
-                    to="/dashboard"
-                    className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white text-green-700 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all font-medium border border-green-100 group"
-                  >
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    Volver al Dashboard
-                  </Link>
                   <UserProfile />
                 </div>
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
+            <Route
+              path="settings"
+              element={
+                <div className="relative min-h-screen bg-gray-50/30">
+                  <SettingsPage />
+                </div>
+              }
+            />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

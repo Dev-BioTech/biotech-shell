@@ -3,8 +3,9 @@ import alertService from "./alertService";
 
 // Client API configured for the Gateway
 const apiClient = axios.create({
-  // Force correct URL to ensure consistency across all MFs
-  baseURL: "https://api-gateway-bio-tech.up.railway.app/api",
+  baseURL:
+    import.meta.env.VITE_API_GATEWAY_URL ||
+    "https://api.biotech.159.54.176.254.nip.io/api",
   timeout: 30000, // Increased timeout for AI responses
   headers: {
     "Content-Type": "application/json",
@@ -29,7 +30,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Interceptor for handling authentication errors
@@ -49,7 +50,7 @@ apiClient.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

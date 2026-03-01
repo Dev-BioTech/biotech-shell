@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+import { isTokenExpired } from "@shared/utils/jwt";
 
 export const useAuthStore = create(
   persist(
@@ -10,44 +11,38 @@ export const useAuthStore = create(
       selectedFarm: null,
       _hasHydrated: false,
 
-      setHasHydrated: (state) => {
-        set({
-          _hasHydrated: state,
-        });
-      },
-
       setAuth: (user, token) => {
         set({
           user,
           token,
           isAuthenticated: true,
         });
-
-        // Event for other MFs to react
-        window.dispatchEvent(
-          new CustomEvent("auth:login", {
-            detail: { user, token },
-          })
-        );
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
       },
 
       setSelectedFarm: (farm) => {
         set({
           selectedFarm: farm,
         });
-
-        // Event for other MFs to react
-        window.dispatchEvent(
-          new CustomEvent("farm:selected", {
-            detail: farm,
-          })
-        );
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
       },
 
-      updateUser: (userData) => {
-        set((state) => ({
-          user: { ...state.user, ...userData },
-        }));
+      isTokenValid: () => {
+        const { token, isAuthenticated } = get();
+        if (!isAuthenticated || !token) return false;
+
+        // Use the local utility to check expiration
+        const expired = isTokenExpired(token);
+        if (expired) {
+          console.warn("AuthStore (Shell): Token expired, logging out...");
+          // We can't call logout() directly here easily without recursion if not careful,
+          // but we can return false and let the caller handle it.
+        }
+        return !expired;
       },
 
       logout: () => {
@@ -72,14 +67,14 @@ export const useAuthStore = create(
           document.cookie =
             name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
         });
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
       },
     }),
     {
       name: "auth-storage", // unique name for localStorage key
-      storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-      },
-    }
-  )
+    },
+  ),
 );

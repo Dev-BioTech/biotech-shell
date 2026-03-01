@@ -1,4 +1,4 @@
-import apiClient from "../../../shared/utils/apiClient";
+import apiClient from "@shared/utils/apiClient";
 
 export const aiService = {
   // Send message to AI Chat
