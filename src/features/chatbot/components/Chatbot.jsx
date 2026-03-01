@@ -27,21 +27,23 @@ export function Chatbot() {
 
   const getBotResponse = async (userMessage) => {
     try {
-      const response = await aiService.sendMessage(userMessage);
-      // Adjust based on actual backend response structure.
-      // Assuming response is { response: "..." } or plain string.
-      return response?.response ||
-        response?.message ||
-        typeof response === "string"
-        ? response
-        : "No pude procesar tu solicitud.";
+      const data = await aiService.sendMessage(userMessage);
+      // Backend response: { response: "..." } or { message: "..." } or plain string
+      if (typeof data === "string") return data;
+      return (
+        data?.response ||
+        data?.message ||
+        data?.reply ||
+        data?.content ||
+        "No pude procesar tu solicitud. Intenta de nuevo."
+      );
     } catch (error) {
       console.error("AI Error:", error);
-      // Return specific error for debugging
-      const details = error.response?.data
-        ? JSON.stringify(error.response.data)
-        : error.message;
-      return `Error: ${details}. (Status: ${error.response?.status})`;
+      if (error.response?.status === 401)
+        return "Sesión expirada. Por favor vuelve a iniciar sesión.";
+      if (error.response?.status === 503)
+        return "El asistente no está disponible ahora mismo. Inténtalo más tarde.";
+      return "Ocurrió un error al contactar al asistente. Verifica tu conexión e inténtalo de nuevo.";
     }
   };
 

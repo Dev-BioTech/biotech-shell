@@ -7,6 +7,7 @@ import {
   Link,
   useNavigate,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Layout } from "@features/layout/components";
@@ -32,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return children;
+  return children || <Outlet />;
 };
 
 // Lazy load remote components
@@ -49,6 +50,7 @@ import ToastContainer from "@shared/components/ui/ToastContainer";
 const AnimalsList = lazy(() => import("animalsMF/AnimalsList"));
 const AnimalDetail = lazy(() => import("animalsMF/AnimalDetail"));
 const AnimalForm = lazy(() => import("animalsMF/AnimalForm"));
+const CatalogsManager = lazy(() => import("animalsMF/CatalogsManager"));
 
 // Health MF Imports
 const RemoteHealthDashboard = lazy(() => import("healthMF/HealthDashboard"));
@@ -232,219 +234,86 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route
-            path="/farm-selector"
-            element={
-              <ProtectedRoute>
-                <FarmSelector />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Animals Microfrontend Routes */}
-          <Route
-            path="/animals"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalsList />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/create"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalForm />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/:id"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalDetail />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/animals/edit/:id"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <AnimalForm />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Health Microfrontend Routes */}
-          <Route
-            path="/health"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HealthDashboardWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/records"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <HealthRecordsWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/vaccination"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <VaccinationCalendarWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health/diagnostics"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <DiagnosticHistoryWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Feeding Microfrontend Routes */}
-          <Route
-            path="/feeding"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">
-                        Cargando módulo de alimentación...
-                      </div>
-                    }
-                  >
+          {/* Protected Routes with Persistent Layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="animals" element={<AnimalsList />} />
+              <Route path="animals/create" element={<AnimalForm />} />
+              <Route path="animals/:id" element={<AnimalDetail />} />
+              <Route path="animals/edit/:id" element={<AnimalForm />} />
+              <Route path="catalogs" element={<CatalogsManager />} />
+              <Route path="health" element={<HealthDashboardWrapper />} />
+              <Route path="health/records" element={<HealthRecordsWrapper />} />
+              <Route
+                path="health/vaccination"
+                element={<VaccinationCalendarWrapper />}
+              />
+              <Route
+                path="health/diagnostics"
+                element={<DiagnosticHistoryWrapper />}
+              />
+              <Route
+                path="feeding"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <FeedingPlans />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feeding/schedule"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={<div className="p-4">Cargando horario...</div>}
-                  >
+                }
+              />
+              <Route
+                path="feeding/schedule"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <FeedingSchedule />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Reproduction Routes */}
-          <Route
-            path="/reproduction"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">Cargando reproducción...</div>
-                    }
-                  >
+                }
+              />
+              <Route
+                path="reproduction"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <RemoteReproductionMonitor />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Inventory Route (NEW) */}
-          <Route
-            path="/inventory"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={<div className="p-4">Cargando inventario...</div>}
-                  >
+                }
+              />
+              <Route
+                path="inventory"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <RemoteInventoryList />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Commercial Route */}
-          <Route
-            path="/commercial"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <div className="p-4">Cargando dashboard comercial...</div>
-                    }
-                  >
+                }
+              />
+              <Route
+                path="commercial"
+                element={
+                  <Suspense fallback={<div>Cargando...</div>}>
                     <RemoteCommercialDashboard />
                   </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+                }
+              />
+            </Route>
 
-          {/* Profile WITHOUT Layout (Sidebar) */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
+            {/* Other protected routes without sidebars */}
+            <Route path="farm-selector" element={<FarmSelector />} />
+            <Route
+              path="profile"
+              element={
                 <div className="relative min-h-screen bg-gray-50/30">
                   <UserProfile />
                 </div>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Settings / Preferencias WITHOUT Layout */}
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
+              }
+            />
+            <Route
+              path="settings"
+              element={
                 <div className="relative min-h-screen bg-gray-50/30">
                   <SettingsPage />
                 </div>
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
