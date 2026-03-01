@@ -1,4 +1,5 @@
 import axios from "axios";
+import alertService from "./alertService";
 
 // Client API configured for the Gateway
 const apiClient = axios.create({
@@ -35,11 +36,17 @@ apiClient.interceptors.request.use(
 // Interceptor for handling authentication errors
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       // Invalid or expired token
       localStorage.removeItem("auth-storage");
       window.dispatchEvent(new Event("auth-change"));
+
+      await alertService.error(
+        "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+        "Sesión Expirada"
+      );
+
       window.location.href = "/login";
     }
     return Promise.reject(error);

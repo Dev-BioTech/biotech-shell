@@ -9,6 +9,7 @@ export const useAuthStore = create(
       token: null,
       isAuthenticated: false,
       selectedFarm: null,
+      _hasHydrated: false,
 
       setAuth: (user, token) => {
         set({
@@ -45,6 +46,9 @@ export const useAuthStore = create(
       },
 
       logout: () => {
+        // Event for other MFs to react
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+
         // Clear the state
         set({
           user: null,

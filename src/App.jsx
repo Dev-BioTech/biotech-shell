@@ -16,6 +16,7 @@ import "./App.css";
 
 import Landing from "@features/layout/components/Landing";
 import { useAuthStore } from "@shared/store/authStore";
+import ApiServiceDemo from "@shared/components/ApiServiceDemo";
 
 import { isTokenExpired, parseJwt } from "@shared/utils/jwt";
 
