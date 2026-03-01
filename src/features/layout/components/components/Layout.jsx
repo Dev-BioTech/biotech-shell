@@ -24,7 +24,7 @@ import {
   BarChart2,
   Cpu,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -103,11 +103,13 @@ const Layout = ({ children }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [showAll, setShowAll] = useState(false);
-  const notifRef = useRef(null);
+  const notifBtnRef = useRef(null);
+  const notifPanelRef = useRef(null);
 
   // ── Menú usuario ──
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const userMenuRef = useRef(null);
+  const userBtnRef = useRef(null);
+  const userPanelRef = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const visibleNotifs = showAll
@@ -117,12 +119,13 @@ const Layout = ({ children }) => {
   // Cerrar al hacer clic afuera
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-        setShowUserMenu(false);
-      }
+      const inNotifBtn = notifBtnRef.current?.contains(e.target);
+      const inNotifPanel = notifPanelRef.current?.contains(e.target);
+      const inUserBtn = userBtnRef.current?.contains(e.target);
+      const inUserPanel = userPanelRef.current?.contains(e.target);
+
+      if (!inNotifBtn && !inNotifPanel) setShowNotifications(false);
+      if (!inUserBtn && !inUserPanel) setShowUserMenu(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -178,24 +181,24 @@ const Layout = ({ children }) => {
       <AppSidebar />
       <SidebarInset>
         {/* ── Header ── */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 sticky top-0 z-[60]">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
 
           {/* Título + granja activa */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-0 flex-shrink">
-            <span className="font-medium text-foreground hidden sm:inline truncate">
+            <span className="font-medium text-foreground truncate max-w-[100px] sm:max-w-none">
               BioTech Farm
             </span>
             {selectedFarm && (
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-gray-300 hidden sm:inline">/</span>
+                <span className="text-gray-300">/</span>
                 <button
                   onClick={() => navigate("/farm-selector")}
                   className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold transition-all border border-green-200 truncate"
                   title="Cambiar de granja"
                 >
-                  <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
                   <div className="flex flex-col items-start leading-none truncate">
                     <span className="max-w-[80px] sm:max-w-[120px] truncate">
                       {selectedFarm.name}
@@ -214,8 +217,9 @@ const Layout = ({ children }) => {
           {/* ── Zona derecha ── */}
           <div className="ml-auto flex items-center gap-1">
             {/* ── Notificaciones ── */}
-            <div className="relative" ref={notifRef}>
+            <div className="relative">
               <button
+                ref={notifBtnRef}
                 onClick={() => {
                   setShowNotifications((v) => !v);
                   setShowUserMenu(false);
@@ -238,7 +242,9 @@ const Layout = ({ children }) => {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
-                    className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-full sm:mt-2 w-auto sm:w-96 rounded-2xl z-50 overflow-hidden origin-top sm:origin-top-right"
+                    ref={notifPanelRef}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="fixed right-4 top-[64px] w-[92vw] sm:w-96 rounded-2xl z-[200] overflow-hidden origin-top-right"
                     style={{
                       background: "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(20px)",
@@ -362,8 +368,9 @@ const Layout = ({ children }) => {
             </div>
 
             {/* ── Botón usuario ── */}
-            <div className="relative" ref={userMenuRef}>
+            <div className="relative">
               <button
+                ref={userBtnRef}
                 onClick={() => {
                   setShowUserMenu((v) => !v);
                   setShowNotifications(false);
@@ -373,11 +380,11 @@ const Layout = ({ children }) => {
                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold uppercase text-sm shadow-sm">
                   {userInitial}
                 </div>
-                <div className="hidden md:flex flex-col items-start leading-none">
-                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                <div className="flex flex-col items-start leading-none min-w-0">
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[80px] sm:max-w-[150px]">
                     {displayName}
                   </span>
-                  <span className="text-xs text-muted-foreground capitalize">
+                  <span className="text-[10px] text-muted-foreground capitalize truncate">
                     {userRole}
                   </span>
                 </div>
@@ -397,7 +404,9 @@ const Layout = ({ children }) => {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
-                    className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-full sm:mt-2 w-auto sm:w-72 rounded-2xl z-50 overflow-hidden origin-top sm:origin-top-right"
+                    ref={userPanelRef}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="fixed right-4 top-[64px] w-[92vw] sm:w-72 rounded-2xl z-[200] overflow-hidden origin-top-right"
                     style={{
                       background: "rgba(255,255,255,0.88)",
                       backdropFilter: "blur(20px)",
@@ -548,7 +557,7 @@ const Layout = ({ children }) => {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4">
-            {children}
+            {children || <Outlet />}
           </div>
         </div>
       </SidebarInset>

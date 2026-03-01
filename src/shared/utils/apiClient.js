@@ -4,7 +4,7 @@ import axios from "axios";
 const apiClient = axios.create({
   baseURL:
     import.meta.env.VITE_API_GATEWAY_URL ||
-    "https://api-gateway-bio-tech.up.railway.app/api",
+    "https://api.biotech.159.54.176.254.nip.io/api",
   timeout: 30000, // Increased timeout for AI responses
   headers: {
     "Content-Type": "application/json",
@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Interceptor for handling authentication errors
@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;
