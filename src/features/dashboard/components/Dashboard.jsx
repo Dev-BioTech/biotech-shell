@@ -92,12 +92,12 @@ export default function Dashboard() {
       const [animalsRes, healthRes, feedingRes, upcomingRes, lowStockRes] =
         await Promise.allSettled([
           apiClient.get("/v1/animals", { params: { farmId } }),
-          apiClient.get("/HealthEvent/farm"),
-          apiClient.get(`/v1/FeedingEvents/farm/${farmId}`, {
+          apiClient.get("/v1/health-event/farm"),
+          apiClient.get(`/v1/feeding-events/farm/${farmId}`, {
             params: { pageSize: 5 },
           }),
-          apiClient.get("/HealthEvent/upcoming", { params: { limit: 4 } }),
-          apiClient.get("/Products/low-stock", { params: { farmId } }),
+          apiClient.get("/v1/health-event/upcoming", { params: { limit: 4 } }),
+          apiClient.get(`/v1/products/farms/${farmId}/low-stock`),
         ]);
 
       setAnimals(
@@ -137,9 +137,10 @@ export default function Dashboard() {
   }, [farmId]);
 
   // ─ derived stats ─
-  const activeAnimals = animals.filter(
-    (a) => a.status !== "Muerto" && a.status !== "Vendido",
-  ).length;
+  const activeAnimals = animals.filter((a) => {
+    const s = (a.currentStatus || a.status || "").toUpperCase();
+    return s !== "DEAD" && s !== "MUERTO" && s !== "SOLD" && s !== "VENDIDO";
+  }).length;
   const pendingHealth = healthEvents.filter(
     (e) => e.status === "Pendiente",
   ).length;

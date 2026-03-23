@@ -22,6 +22,30 @@ apiClient.interceptors.request.use(
         if (authData?.state?.token) {
           config.headers.Authorization = `Bearer ${authData.state.token}`;
         }
+        
+        // Inyectar el farmId si existe una granja seleccionada
+        const selectedFarm = authData?.state?.selectedFarm;
+        if (selectedFarm && selectedFarm.id) {
+          // Enviar como Header (estándar para microservicios)
+          // Solo inyectar si no se está forzando un encabezado específico
+          if (!config.headers["X-Farm-Id"]) {
+            config.headers["X-Farm-Id"] = selectedFarm.id;
+          }
+
+          // Opcional: Inyectar también en los params si es una petición GET
+          if (config.method === "get") {
+            // Verificar que el farmId no venga ya explícito en la URL o params
+            const urlHasFarmId = config.url && config.url.includes("farmId=");
+            const paramsHasFarmId = config.params && config.params.farmId !== undefined;
+            
+            if (!urlHasFarmId && !paramsHasFarmId) {
+              config.params = {
+                ...config.params,
+                farmId: selectedFarm.id,
+              };
+            }
+          }
+        }
       } catch (error) {
         console.error("Error parsing auth token:", error);
       }
@@ -38,16 +62,31 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Invalid or expired token
-      localStorage.removeItem("auth-storage");
-      window.dispatchEvent(new Event("auth-change"));
+      // Only force logout if there is truly no valid token in storage.
+      // Resource-level 401s (e.g. feeding-events, HealthEvent lacking farm context)
+      // must NOT clear the session — they fail because of missing context,
+      // not because the user's JWT is expired or missing.
+      const authStorage = localStorage.getItem("auth-storage");
+      let hasValidToken = false;
+      try {
+        const parsed = JSON.parse(authStorage);
+        hasValidToken = !!parsed?.state?.token;
+      } catch {
+        hasValidToken = false;
+      }
 
-      await alertService.error(
-        "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
-        "Sesión Expirada"
-      );
-
-      window.location.href = "/login";
+      // Only logout if there's no token at all (genuine authentication failure)
+      if (!hasValidToken) {
+        localStorage.removeItem("auth-storage");
+        window.dispatchEvent(new Event("auth-change"));
+        await alertService.error(
+          "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+          "Sesión Expirada"
+        );
+        window.location.href = "/login";
+      }
+      // If there IS a valid token, the 401 is a resource-level authorization
+      // issue — let the caller handle it gracefully (e.g. Promise.allSettled).
     }
     return Promise.reject(error);
   },
