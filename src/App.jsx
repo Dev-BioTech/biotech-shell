@@ -66,8 +66,7 @@ const RemoteDiagnosticHistory = lazy(
 );
 
 // Feeding MF Imports
-const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
-const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
+const FeedingEventsList = lazy(() => import("feedingMF/FeedingEventsList"));
 
 // Reproduction MF Imports
 const RemoteReproductionMonitor = lazy(
@@ -258,15 +257,7 @@ function App() {
                 path="feeding"
                 element={
                   <Suspense fallback={<div>Cargando...</div>}>
-                    <FeedingPlans />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="feeding/schedule"
-                element={
-                  <Suspense fallback={<div>Cargando...</div>}>
-                    <FeedingSchedule />
+                    <FeedingEventsList />
                   </Suspense>
                 }
               />
