@@ -179,9 +179,9 @@ const Layout = ({ children }) => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="m-0 p-0 rounded-none shadow-none border-none overflow-hidden">
         {/* ── Header ── */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 sticky top-0 z-[60]">
+        <header className="flex h-16 shrink-0 items-center gap-2 bg-background px-4 sticky top-0 z-[60]">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
 
@@ -555,8 +555,8 @@ const Layout = ({ children }) => {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4">
+        <div className="flex flex-1 flex-col">
+          <div className="flex-1 p-6">
             {children || <Outlet />}
           </div>
         </div>
