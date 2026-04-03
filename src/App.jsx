@@ -20,15 +20,19 @@ import ApiServiceDemo from "@shared/components/ApiServiceDemo";
 
 import { isTokenExpired, parseJwt } from "@shared/utils/jwt";
 
+import { ModuleSkeleton } from "@shared/components/ui/ModuleSkeleton";
+
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, token, logout } = useAuthStore();
   const location = useLocation();
 
-  // Si no está autenticado o el token expiró, redirigir
-  if (!isAuthenticated || !token || isTokenExpired(token)) {
-    if (isAuthenticated) {
-      console.warn("Session expired or token missing, logging out...");
+  // Si no hay token o está expirado, redirigir al login inmediatamente
+  const isExpired = token ? isTokenExpired(token) : true;
+
+  if (!isAuthenticated || !token || isExpired) {
+    if (isAuthenticated || token) {
+      console.warn("Shell: ProtectedRoute - Session invalid or expired, forcing logout");
       logout();
     }
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -64,8 +68,7 @@ const RemoteDiagnosticHistory = lazy(
 );
 
 // Feeding MF Imports
-const FeedingPlans = lazy(() => import("feedingMF/FeedingPlan"));
-const FeedingSchedule = lazy(() => import("feedingMF/FeedingSchedule"));
+const FeedingEventsList = lazy(() => import("feedingMF/FeedingEventsList"));
 
 // Reproduction MF Imports
 const RemoteReproductionMonitor = lazy(
@@ -135,27 +138,25 @@ function App() {
 
     // Verificación periódica cada 10 segundos
     const interval = setInterval(() => {
-      const { isTokenValid, logout, isAuthenticated, token } =
-        useAuthStore.getState();
-
-      if (isAuthenticated && token && !isTokenValid()) {
-        const decoded = parseJwt(token);
-        if (decoded && decoded.exp) {
-          console.warn("Shell: Session expired during periodic check");
-          logout();
+      const state = useAuthStore.getState();
+      
+      if (state.isAuthenticated && state.token) {
+        if (isTokenExpired(state.token)) {
+          console.warn("Shell: Session expired during periodic check, logging out...");
+          state.logout();
           window.dispatchEvent(new Event("auth-change"));
+          // Redirigir a login si es necesario para asegurar limpieza
+          window.location.href = "/login";
         }
       }
-    }, 10000);
+    }, 15000); // Check every 15s to be efficient
 
     return () => clearInterval(interval);
   }, []);
 
-  // ÚNICO CAMBIO MANTENIDO: Sincronización inteligente sin parpadeo
   React.useEffect(() => {
     const handleAuthChange = async () => {
       console.log("Shell: Auth change detected, syncing...");
-      // Forzamos a Zustand a re-leer el localStorage sin desmontar la App
       await useAuthStore.persist.rehydrate();
     };
 
@@ -188,8 +189,10 @@ function App() {
 
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="min-h-screen bg-white">
+            <Layout>
+              <ModuleSkeleton />
+            </Layout>
           </div>
         }
       >
@@ -258,15 +261,7 @@ function App() {
                 path="feeding"
                 element={
                   <Suspense fallback={<div>Cargando...</div>}>
-                    <FeedingPlans />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="feeding/schedule"
-                element={
-                  <Suspense fallback={<div>Cargando...</div>}>
-                    <FeedingSchedule />
+                    <FeedingEventsList />
                   </Suspense>
                 }
               />

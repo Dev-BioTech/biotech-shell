@@ -26,10 +26,14 @@ apiClient.interceptors.request.use(
         // Inyectar el farmId si existe una granja seleccionada
         const selectedFarm = authData?.state?.selectedFarm;
         if (selectedFarm && selectedFarm.id) {
+          // Limpiar el ID: si viene como "35:1" quedarnos solo con "35"
+          const rawFarmId = selectedFarm.id;
+          const cleanFarmId = typeof rawFarmId === 'string' ? rawFarmId.split(":")[0] : rawFarmId;
+
           // Enviar como Header (estándar para microservicios)
           // Solo inyectar si no se está forzando un encabezado específico
           if (!config.headers["X-Farm-Id"]) {
-            config.headers["X-Farm-Id"] = selectedFarm.id;
+            config.headers["X-Farm-Id"] = cleanFarmId;
           }
 
           // Opcional: Inyectar también en los params si es una petición GET
@@ -41,7 +45,7 @@ apiClient.interceptors.request.use(
             if (!urlHasFarmId && !paramsHasFarmId) {
               config.params = {
                 ...config.params,
-                farmId: selectedFarm.id,
+                farmId: cleanFarmId,
               };
             }
           }
