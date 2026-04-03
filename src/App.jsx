@@ -20,6 +20,8 @@ import ApiServiceDemo from "@shared/components/ApiServiceDemo";
 
 import { isTokenExpired, parseJwt } from "@shared/utils/jwt";
 
+import { ModuleSkeleton } from "@shared/components/ui/ModuleSkeleton";
+
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, token, logout } = useAuthStore();
@@ -187,8 +189,10 @@ function App() {
 
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="min-h-screen bg-white">
+            <Layout>
+              <ModuleSkeleton />
+            </Layout>
           </div>
         }
       >

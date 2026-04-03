@@ -171,7 +171,7 @@ export function ToastContainer() {
 
   return (
     <div
-      className="fixed top-4 sm:top-6 left-0 right-0 sm:left-auto sm:right-5 flex flex-col items-center sm:items-end gap-2.5 sm:gap-3 w-full sm:w-auto sm:max-w-[440px] pointer-events-none px-3 sm:px-0"
+      className="fixed top-4 sm:top-6 right-4 sm:right-6 flex flex-col items-end gap-2.5 sm:gap-3 w-full sm:w-auto sm:max-w-[440px] pointer-events-none"
       style={{ zIndex: 999999 }}
     >
       <AnimatePresence mode="popLayout">
