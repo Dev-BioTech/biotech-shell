@@ -179,11 +179,13 @@ const Layout = ({ children }) => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="m-0 p-0 rounded-none shadow-none border-none overflow-hidden">
-        {/* ── Header ── */}
-        <header className="flex h-16 shrink-0 items-center gap-2 bg-background px-4 sticky top-0 z-[60]">
+      <SidebarInset className="m-0 p-0 rounded-none shadow-none border-none overflow-hidden bg-white">
+        {/* ── Header Totalmente Integrado (Sin Sombras) ── */}
+        <header 
+          style={{ boxShadow: 'none' }}
+          className="flex h-16 shrink-0 items-center gap-4 bg-white px-6 border-b border-gray-100/50 sticky top-0 z-[60] !shadow-none"
+        >
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
 
           {/* Título + granja activa */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-0 flex-shrink">
@@ -556,9 +558,7 @@ const Layout = ({ children }) => {
         </header>
 
         <div className="flex flex-1 flex-col">
-          <div className="flex-1 p-6">
-            {children || <Outlet />}
-          </div>
+          <div className="flex-1 p-6">{children || <Outlet />}</div>
         </div>
       </SidebarInset>
 
